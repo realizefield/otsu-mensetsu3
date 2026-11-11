@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>大津町役場 3次面接対策 - 項目別採点版</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 20px;
+    background: #f5f5f5;
+    font-family: "Hiragino Sans", "Meiryo", sans-serif;
+    line-height: 1.6;
+    color: #333;
+  }
+  .container { max-width: 900px; margin: 0 auto; }
+  h1 { color: #0066cc; margin-bottom: 5px; text-align: center; }
+  .subtitle { text-align: center; color: #666; margin-bottom: 30px; font-size: 14px; }
+
+  .question-list {
+    background: white;
+    padding: 20px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  .q-btn {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 12px;
+    margin: 8px 0;
+    border: 1px solid #ddd;
+    background: white;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: 0.2s;
+    font-size: 14px;
+  }
+  .q-btn:hover { background: #f0f0f0; border-color: #0066cc; }
+  .q-btn.selected { background: #e6f2ff; border-color: #0066cc; font-weight: bold; }
+
+  .practice-area {
+    background: white;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  .question-display {
+    background: #f9f9f9;
+    padding: 15px;
+    border-left: 5px solid #0066cc;
+    margin-bottom: 20px;
+    border-radius: 3px;
+  }
+
+  .control-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    transition: 0.2s;
+  }
+  .btn-voice {
+    background: #2b8a3e;
+    color: white;
+  }
+  .btn-voice:hover:not(.loading) { background: #1e6b2e; }
+  .btn-voice.recording {
+    background: #d92d20;
+    animation: pulse 1s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+  }
+  .btn-clear {
+    background: #ccc;
+    color: #333;
+  }
+  .btn-clear:hover { background: #999; }
+  .btn-eval {
+    background: #0066cc;
+    color: white;
+  }
+  .btn-eval:hover:not(.loading) { background: #0052a3; }
+  .btn-eval.loading {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .transcript-box {
+    background: #f9f9f9;
+    border: 2px solid #ddd;
+    padding: 15px;
+    border-radius: 3px;
+    margin-bottom: 15px;
+    min-height: 80px;
+    max-height: 150px;
+    overflow-y: auto;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  .transcript-box.empty {
+    color: #999;
+    font-style: italic;
+  }
+  .transcript-box.filled {
+    color: #333;
+    background: #f0f8ff;
+    border-color: #0066cc;
+  }
+
+  .intent-section {
+    background: #fff3bf;
+    padding: 12px;
+    border-radius: 3px;
+    margin: 15px 0;
+  }
+  .intent-label { font-size: 12px; color: #999; }
+  .intent-text { color: #d9480f; font-weight: bold; }
+
+  .keywords { margin-top: 10px; }
+  .keyword {
+    display: inline-block;
+    background: #e6f2ff;
+    color: #0066cc;
+    padding: 4px 10px;
+    margin: 4px 4px 4px 0;
+    border-radius: 12px;
+    font-size: 12px;
+  }
+
+  .evaluation-result {
+    background: #fff;
+    border: 2px solid #0066cc;
+    padding: 20px;
+    border-radius: 3px;
+    margin-top: 15px;
+  }
+  .score-header {
+    background: #e6f2ff;
+    padding: 15px;
+    border-radius: 3px;
+    margin-bottom: 20px;
+    border-left: 5px solid #0066cc;
+  }
+  .total-score {
+    font-size: 48px;
+    font-weight: bold;
+    color: #0066cc;
+    text-align: center;
+  }
+  .score-note {
+    text-align: center;
+    font-size: 12px;
+    color: #666;
+    margin-top: 5px;
+  }
+
+  .items-section {
+    margin-bottom: 25px;
+  }
+  .items-title {
+    font-weight: bold;
+    color: #0066cc;
+    margin-bottom: 15px;
+    font-size: 16px;
+  }
+
+  .item-row {
+    display: grid;
+    grid-template-columns: 1fr 80px;
+    gap: 15px;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #ddd;
+  }
+  .item-row:last-child {
+    border-bottom: none;
+  }
+
+  .item-name {
+    font-weight: 600;
+    color: #333;
+  }
+  .item-detail {
+    font-size: 13px;
+    color: #666;
+    margin-top: 6px;
+  }
+
+  .item-score {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .score-number {
+    font-size: 24px;
+    font-weight: bold;
+    color: #0066cc;
+  }
+  .score-max {
+    font-size: 12px;
+    color: #999;
+  }
+
+  .feedback-section {
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 3px;
+    margin-top: 20px;
+  }
+  .feedback-title {
+    font-weight: bold;
+    color: #0066cc;
+    margin-bottom: 12px;
+  }
+  .feedback-box {
+    background: white;
+    padding: 12px;
+    border-left: 4px solid;
+    margin-bottom: 12px;
+    border-radius: 2px;
+  }
+  .feedback-good {
+    border-left-color: #2b8a3e;
+  }
+  .feedback-improve {
+    border-left-color: #d9480f;
+  }
+  .feedback-label {
+    font-weight: bold;
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+  .feedback-label.good {
+    color: #2b8a3e;
+  }
+  .feedback-label.improve {
+    color: #d9480f;
+  }
+  .feedback-content {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #333;
+  }
+  .feedback-content div {
+    margin: 6px 0;
+  }
+
+  .model-answer {
+    background: #f0f8ff;
+    border-left: 4px solid #0066cc;
+    padding: 15px;
+    border-radius: 2px;
+    margin-top: 20px;
+  }
+  .model-title {
+    font-weight: bold;
+    color: #0066cc;
+    margin-bottom: 10px;
+  }
+  .model-content {
+    font-size: 14px;
+    line-height: 1.8;
+    color: #333;
+  }
+
+  .loading-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #0066cc;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    margin-right: 8px;
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .msg {
+    margin-top: 10px;
+    padding: 12px;
+    border-radius: 3px;
+    border-left: 4px solid #999;
+  }
+  .msg.info {
+    background: #e7f1ff;
+    color: #1c7ed6;
+    border-left-color: #1c7ed6;
+  }
+  .msg.success {
+    background: #c3fac3;
+    color: #2b8a3e;
+    border-left-color: #2b8a3e;
+  }
+  .msg.error {
+    background: #fcc;
+    color: #d92d20;
+    border-left-color: #d92d20;
+  }
+  .msg.warning {
+    background: #fff3bf;
+    color: #d9480f;
+    border-left-color: #d9480f;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🏛️ 大津町役場 3次面接対策</h1>
+  <p class="subtitle">項目別採点版（全39問・江原予備校レベル）</p>
+
+  <div class="question-list">
+    <h3>質問を選択:</h3>
+    <div id="questionButtons"></div>
+  </div>
+
+  <div class="practice-area">
+    <div id="questionDisplay" class="question-display" style="display:none;">
+      <div><strong id="questionText"></strong></div>
+    </div>
+
+    <div class="control-buttons">
+      <button class="btn-voice" id="voiceBtn" onclick="toggleVoiceInput()">🎤 音声入力開始</button>
+      <button class="btn-clear" onclick="clearTranscript()">🗑️ クリア</button>
+      <button class="btn-eval" id="evalBtn" onclick="getDetailedEvaluation()">⚡ 採点</button>
+    </div>
+
+    <div>
+      <label><strong>🎙️ 認識されたテキスト:</strong></label>
+      <div id="transcriptBox" class="transcript-box empty">クリックして音声入力を開始...</div>
+    </div>
+
+    <div id="intentSection" style="display:none;">
+      <div class="intent-section">
+        <div class="intent-label">面接官の意図</div>
+        <div class="intent-text" id="intentText"></div>
+        <div class="keywords" id="keywordArea"></div>
+      </div>
+    </div>
+
+    <div id="evalResultSection" style="display:none;">
+      <div class="evaluation-result">
+        <div class="score-header">
+          <div class="total-score" id="totalScore">0</div>
+          <div class="score-note">（自己点：満点中の編集点）</div>
+        </div>
+
+        <div id="detailedScores"></div>
+
+        <div id="feedbackSection"></div>
+      </div>
+    </div>
+
+    <div id="loadingSection" style="display:none;">
+      <div class="msg info">
+        <span class="loading-spinner"></span>詳細採点分析を実行中...
+      </div>
+    </div>
+
+    <div id="statusMessage" style="display:none;"></div>
+  </div>
+</div>
+
+<script>
+const questions = [
+  { q: "小論文の内容を、1分で説明してください。", intent: "小論文を、自分の言葉で要約できるかを見ます。", keywords: ["課題", "解決策", "貢献"], model: "課題は、公共交通の使いやすさです。解決策は二点で、一点目は、利用者の声をもとに予算の範囲内でルートや時間帯を見直すこと、二点目は、広報紙などの複数の媒体でバスや乗合タクシーの情報を周知することです。会計年度任用職員として、まちなかバスでアンケートを取った経験から考えました。" },
+  { q: "なぜ、交通を課題に選んだのですか。", intent: "課題選びが、自分の経験に根ざしているかを見ます。", keywords: ["会計年度任用職員", "アンケート", "具体的な要望"], model: "会計年度任用職員として、まちなかバスでアンケートを取る機会があり、時間帯やルートについて、具体的な要望を直接伺ったからです。町民の皆様の移動は、日常の暮らしに直結しているため、行政が取り組む意味が大きいと考えました。" },
+  { q: "「交通手段の充実度」とは、具体的にどういう状態ですか。", intent: "言葉が抽象的な部分を、具体化できるかを見ます。", keywords: ["具体的", "無理なく移動", "利用者"], model: "小論文では広い言葉を使いましたが、私が考えているのは、町民の方が、行きたい時間に、行きたい場所へ、無理なく移動できる状態です。特に、運転免許を持たない高齢の方や、学生の方にとって、バスや乗合タクシーが使いやすいことが大切だと考えます。" },
+  { q: "あなたが考える、行政の果たすべき役割は何ですか。", intent: "小論文で書かなかった「行政の役割」を、聞かれる可能性が高いです。★最優先です。", keywords: ["町民の声", "予算", "必要なサービス"], model: "小論文では書き足りませんでしたが、行政の役割は、町民の声を丁寧に聞き、限られた予算の中で、必要な方に必要なサービスが届くよう、整えることだと考えます。民間では採算が合いにくい地域や時間帯の移動手段を、関係者と協力して確保することも、行政の大切な役割です。" },
+  { q: "職員として、どのように貢献したいですか。", intent: "結びの「主体的に行動」の中身を見ます。", keywords: ["担当業務", "正確", "提案"], model: "まず、担当業務を正確に覚え、町民の皆様の声を、正しく関係者に伝えることから始めます。そのうえで、資料の作成や集計など、自分にできる形で政策づくりを支え、改善の提案があれば、遠慮せず、上司に相談します。" },
+  { q: "アンケートは、どのような状況で、どのように取ったのですか。", intent: "経験の具体性と、守秘義務の意識を見ます。", keywords: ["会計年度任用職員", "バス", "意見の集計"], model: "会計年度任用職員として、まちなかバスの車内で、利用者の方にお声がけし、ご意見を伺いました。個人が特定されないように、ご意見の内容だけを、集計しました。" },
+  { q: "具体的な要望には、どう対応しますか。", intent: "具体的な要望に、現実的に答えられるかを見ます。", keywords: ["要望の理由", "距離", "運行事業者と協議"], model: "まず、要望の理由（行き先、利用する時間帯）を、詳しく伺います。次に、現在のルートとの距離や、増える時間、費用を整理し、運行事業者と協議します。ルートを変えると、遠回りになって、他の利用者が不便になることもあります。そのため、利用者数のデータも見て、全体として良くなるか、判断したいと思います。" },
+  { q: "乗り換えの時間に間に合わない、という要望には、どう対応しますか。", intent: "時間帯の改善を、具体的に話せるかを見ます。", keywords: ["接続", "ダイヤ", "予算"], model: "接続が合わない時間帯と、利用者の多い時間帯を、乗降データで確認します。そのうえで、ダイヤを少しずらせば解決できるのか、便数を増やす必要があるのかを検討します。便数を増やすと費用がかかるため、予算の範囲内で、効果の大きい時間帯から、事業者と協議して進めます。" },
+  { q: "予算が足りないときは、どうしますか。", intent: "「予算の範囲内」の意味を、深掘りされます。", keywords: ["優先順位", "補助金", "説明"], model: "すべての要望を、同時に実現することは難しいため、優先順位をつけます。利用者数の多い路線や、移動手段が少ない地域を優先します。国や県の補助制度が使えないかも、確認します。それでも難しい場合は、住民の皆様に、理由と今後の見通しを、丁寧に説明します。" },
+  { q: "予算を無視した要望を実現すると、なぜ「机上の空論」になるのですか。", intent: "小論文の理由が、論理的に説明できるかを見ます。", keywords: ["予算の裏づけ", "継続性", "信頼"], model: "予算の裏づけがない計画は、途中で続けられなくなったり、他の大切な事業にしわ寄せが出たりします。そうなると、町民の皆様の期待を裏切り、信頼も失います。そのため、続けられる範囲で、確実に実現できる政策を考えることが大切だと思い、「机上の空論」という言葉を使いました。" },
+  { q: "乗合タクシーの地域拡大とは、何のことですか。", intent: "小論文に書いた事実を、正確に説明できるかを見ます。★確認が必要です。", keywords: ["運行エリア", "令和8年", "一律200円"], model: "町の資料で確認できた範囲では、乗合タクシーの運行エリアを、北・南・東の周辺部で広げ、中心部も拡大する案が、令和8年4月1日実施予定として示されていました。新しく加わる地区の料金は、一律200円です。アンケートの時は、このことを知らない方がいらっしゃいました。" },
+  { q: "まちなかバスについて、知っていることを教えてください。", intent: "町の取組を、理解しているかを見ます。", keywords: ["実証運行", "システム", "バス停"], model: "町の資料で確認できたのは、令和7年10月から、実証運行が続いていること、町営住宅系統と美咲野系統の2系統があること、産交バスが運行していること、「宮本内科前」のバス停が新設されたことです。運賃や便数は、変更がある可能性があるため、数字は断定しません。" },
+  { q: "まちなかバスと乗合タクシーは、どう役割を分けていますか。", intent: "制度の理解を見ます。", keywords: ["ルート", "予約制", "役割分担"], model: "町の資料では、乗合タクシーのエリア拡大を、まちなかバスとの役割分担を明確にしたうえで進める、とされていました。私の理解では、バスは決まったルートと時刻で運行し、乗合タクシーは予約制で、バスが届きにくい地域を補う役割だと考えています。細かい運行方法は、確認が必要です。" },
+  { q: "町は、すでに公共交通の取組を進めています。あなたの提案との違いは何ですか。", intent: "★町の取組を知らずに書いた、と思われないかを見ます。", keywords: ["実証運行", "継続的な聞き取り", "周知"], model: "町がすでに実証運行やエリア拡大を進めていることは、承知しています。私の提案は、それを否定するものではありません。利用者の声（アンケート）を、継続して集め、改善に生かすこと、そして、せっかくの取組を、知らない方に届ける周知を強めることが、今ある取組を、より生かすことになると考えました。" },
+  { q: "広報紙に、バスと乗合タクシーの情報を毎月載せる、とありますが、すでに載っていませんか。", intent: "★広報おおづの掲載状況は、未確認です。", keywords: ["掲載", "目立つ場所", "一覧"], model: "現在の掲載内容は、確認していません。すでに掲載されている場合は、目立つ場所に固定して載せる、時刻や運行区域を一覧にする、といった工夫が考えられます。私が考えたのは、毎月同じ場所に載せることで、町民の皆様が、探しやすくなることです。" },
+  { q: "広報紙を読まない方には、どう届けますか。", intent: "二点目の効果を、深掘りされます。", keywords: ["複数の手段", "地域活動", "スマートフォン"], model: "広報紙だけでは届かないため、複数の手段を組み合わせます。区の会合や、地域活動の場で説明し、町のホームページや、LINEなどの連絡手段でも発信します。高齢の方には、紙のチラシや、顔を合わせての説明が有効です。若い方には、スマートフォンで見られる情報が有効だと思います。" },
+  { q: "周知の効果は、どう確かめますか。", intent: "評価の視点があるかを見ます。", keywords: ["利用者数", "アンケート", "知っている方"], model: "乗合タクシーやバスの利用者数の変化を見ます。また、アンケートで、「知っていますか」と、継続して聞き、知っている方が増えたかを確認します。数字が伸びない場合は、伝え方を見直します。" },
+  { q: "「地域活動を通して、交通の話題にする」とは、具体的にどういうことですか。", intent: "小論文の一部が、読みにくい部分です。意味を聞かれる可能性があります。", keywords: ["会合", "イベント", "説明"], model: "区の会合や、イベントなど、人が集まる場で、バスや乗合タクシーの使い方を、短く説明する、ということです。例えば、高齢の方が集まる場で、予約の方法を説明すれば、「知らなかった」という方を、減らせると考えました。" },
+  { q: "公共交通は、赤字でも続けるべきですか。", intent: "行政の役割と、持続可能性のバランスを見ます。", keywords: ["利益", "公共の役割", "税金"], model: "利益だけで判断せず、町民の移動を支える公共の役割があると考えます。ただし、補助金（町の負担）は、町民の税金です。利用者を増やす努力と、費用の見直しを両立し、続けられる形を考える必要があります。" },
+  { q: "車を運転しない人は、どのように困っていると思いますか。", intent: "課題の対象を、具体的に考えているかを見ます。", keywords: ["通院", "通学", "免許返納"], model: "通院、買い物、通学が、思うようにできないことだと考えます。特に、高齢の方は、免許を返納すると、自分で移動できなくなります。そのため、決まった時間に、近くまで来てくれる移動手段が、とても大切です。" },
+  { q: "空港アクセス鉄道と、町の公共交通は、どう関係しますか。", intent: "カードの内容と、小論文を、つなげて話せるかを見ます。", keywords: ["肥後大津駅", "接続", "ネットワーク"], model: "肥後大津駅周辺は、鉄道とバス・タクシーが集まる場所になります。駅周辺に着いた方が、町内の各地へ、無理なく移動できるよう、バスや乗合タクシーとの接続を考えることが、大切だと思います。第7次振興総合計画の、道路・交通ネットワークの充実にも、つながると考えます。" },
+  { q: "第7次振興総合計画について、知っていることを教えてください。", intent: "計画を読み込んでいるかを見ます。", keywords: ["令和8年", "将来ビジョン", "施策"], model: "令和8年度から11年度までの、前期基本計画があります。将来ビジョンは、「今も未来もみんなが幸せであり続けられるまち　大津」です。道路・交通については、「道路・交通ネットワークの充実」という施策があり、総合的な道路網の形成、安全・安心な生活道路の形成、公共交通ネットワークの構築の3つが、挙げられています。" },
+  { q: "町民の満足度が低い、という資料もあります。どう思いますか。", intent: "町の課題を、理解しているかを見ます。", keywords: ["重要度", "満足度", "改善"], model: "町の資料では、道路網と公共交通は、重要度が高い一方、満足度が低い項目とされています。だからこそ、住民の声を聞き、改善を続けることが、行政の大切な仕事だと思います。私も、アンケートを通して、そのことを実感しました。" },
+  { q: "関係者と連携する、とありますが、誰と連携しますか。", intent: "「連携」の中身を見ます。", keywords: ["運行事業者", "関係課", "区長", "利用者"], model: "運行事業者（バス会社、タクシー会社）、町の関係課、区長や地域の代表の方、そして利用者の皆様です。それぞれ立場が違うため、情報を共有し、目的（町民の移動を守ること）をそろえることが大切だと考えます。" },
+  { q: "意見が対立したときは、どうしますか。", intent: "調整力を見ます。", keywords: ["傾聴", "事実", "相談"], model: "まず、それぞれの立場と理由を、丁寧に聞きます。そのうえで、共通する目的を確認し、データなど、事実をもとに話し合います。それでも決まらない時は、上司に相談し、判断を仰ぎます。" },
+  { q: "「主体的に行動する」とは、具体的にどういうことですか。", intent: "言葉だけになっていないかを見ます。", keywords: ["改善", "提案", "担当範囲"], model: "指示を待つだけでなく、自分の担当範囲で、改善できることを探し、上司に提案することです。例えば、アンケートの集計の仕方を工夫して、分かりやすい資料にする、といった、小さなことから始めます。" },
+  { q: "上司の方針と、あなたの考えが違うときは、どうしますか。", intent: "方針に従う姿勢を、確認されます。", keywords: ["理由", "全力", "相談"], model: "まず、方針の理由を伺い、自分の考えとの違いを整理します。そのうえで、方針に従って、まずは全力で取り組みます。気づいた点があれば、後で、事実を添えて、丁寧に相談します。" },
+  { q: "住民から、無理な要望を言われたら、どうしますか。", intent: "窓口対応力を見ます。", keywords: ["傾聴", "理由", "代案"], model: "まず、お気持ちを、最後まで丁寧に伺います。そのうえで、できること、できないことを、理由とともに、分かりやすく説明します。私一人で判断できないことは、上司に確認し、後日、きちんとお答えします。" },
+  { q: "職員として、アンケートの結果を、どう政策に生かしますか。", intent: "データを政策につなげる考え方を見ます。", keywords: ["集計", "優先順位", "提案"], model: "結果を、集計して、多い意見と、少ないが重要な意見に分けます。そのうえで、費用と効果を整理し、上司や関係課に提案します。提案した結果は、また住民の皆様にお伝えします。" },
+  { q: "あらためて、大津町を志望した理由を教えてください。", intent: "3次面接の、中心的な質問です。2次面接の答えと、矛盾しないようにします。", keywords: ["会計年度任用職員", "住民の声", "政策"], model: "会計年度任用職員として、町民の皆様と接する中で、バスや乗合タクシーなど、日常の暮らしに関わるご意見を、直接伺いました。その経験から、この町の職員として、住民の声を、政策に生かす仕事がしたいと考えました。また、専攻やゼミで学んだ農業も、町の大切な産業です。町職員として、農業と暮らしを支えたいです。" },
+  { q: "なぜ、国や県ではなく、町ですか。", intent: "町を選ぶ理由を、見ます。", keywords: ["距離", "仕事の実感", "直接伺"], model: "町は、住民の皆様との距離が近く、自分の仕事が、どう役立っているかを、実感しやすいと考えるからです。私は、会計年度任用職員として、住民の皆様の声を直接伺い、その価値を感じました。" },
+  { q: "あなたの長所と短所を、教えてください。", intent: "面接カードとの一貫性を見ます。", keywords: ["相手を元気", "改善"], model: "【長所】相手を元気にできることです。【短所】は、面接カードの内容と同じにします。改善のために、【具体的な工夫】をしています。" },
+  { q: "他に、受験している自治体や、企業はありますか。", intent: "併願状況を、確認されます。", keywords: ["大津町", "第一志望"], model: "大津町のみ受験しています。それだけ、大津町で働きたい気持ちが強いです。" },
+  { q: "合格したら、必ず入庁しますか。", intent: "入庁の意思を、確認されます。", keywords: ["大津町", "第一", "努力"], model: "はい。大津町で働くことを、第一に考えています。必ず入庁し、精一杯、努力します。" },
+  { q: "10年後、どんな職員になっていたいですか。", intent: "成長の見通しを見ます。", keywords: ["住民", "幅広い知識", "信頼"], model: "住民の皆様から、「この人に相談すれば、きちんと対応してくれる」と、信頼される職員です。様々な部署を経験し、幅広い知識を身につけ、町の課題を、自分の言葉で、説明できるようになりたいです。" },
+  { q: "最後に、何か、言っておきたいことはありますか。", intent: "意欲と、人柄を見ます。", keywords: ["本日", "住民", "精一杯"], model: "本日は、貴重な時間をいただき、ありがとうございました。小論文でも書きましたが、住民の皆様の声を、大切にする職員になりたいと、あらためて思いました。採用いただけましたら、精一杯、努力します。よろしくお願いいたします。" },
+  { q: "何か、質問はありますか。（逆質問）", intent: "意欲と、準備を見ます。", keywords: ["入庁後", "知識", "経験"], model: "入庁後の最初の数年間で、身につけておくとよい知識や経験は、何ですか。地域の公共交通について、職員の皆様は、住民の方の声を、どのように集めておられますか。" },
+  { q: "なぜ、前の職場を辞めたのですか。", intent: "不満で辞めていないか、また、辞めずに続くかを見ます。（出典：宇城市3次試験で出た質問）", keywords: ["最初", "データ", "勤務"], model: "最初の職場（スーパー）は、お客様のご要望に応える喜びを感じながらも、データを活用して業務を効率化することに関心を持ち、事務の仕事に挑戦したいと考えて退職しました。これらの経験を生かし、大津町で、長く働きたいと考えています。" },
+  { q: "公務員としての、地域貢献とは、どういうことだと考えますか。", intent: "公務員の役割を、自分の言葉で理解しているかを見ます。★志望動機とセットで聞かれます。（出典：宇城市3次試験で出た質問）", keywords: ["全体", "利益", "住民", "公平"], model: "特定の誰かのためではなく、町民の皆様全体の利益のために、公平に、誠実に働くことだと考えます。その中で、私は、住民の皆様の声を丁寧に聞き、関係者と連携しながら、暮らしを支える仕事をしたいです。小論文で書いた交通のように、身近な困りごとを、一つずつ改善することも、地域貢献だと考えます。" }
+];
+
+let selectedQ = null;
+let transcript = '';
+let recognition = null;
+
+function initVoice() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    showStatus('お使いのブラウザは音声認識に対応していません。Chrome、Edge、Safariをお試しください。', 'error');
+    return false;
+  }
+  recognition = new SpeechRecognition();
+  recognition.lang = 'ja-JP';
+  recognition.continuous = true;
+  recognition.interimResults = true;
+
+  recognition.onstart = () => {
+    document.getElementById('voiceBtn').classList.add('recording');
+    document.getElementById('voiceBtn').textContent = '🔴 記録中...';
+  };
+
+  recognition.onresult = (event) => {
+    transcript = '';
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      transcript += event.results[i][0].transcript;
+    }
+    const box = document.getElementById('transcriptBox');
+    box.textContent = transcript;
+    box.classList.remove('empty');
+    box.classList.add('filled');
+  };
+
+  recognition.onerror = (event) => {
+    showStatus('音声認識エラー: ' + event.error, 'error');
+  };
+
+  recognition.onend = () => {
+    document.getElementById('voiceBtn').classList.remove('recording');
+    document.getElementById('voiceBtn').textContent = '🎤 音声入力開始';
+  };
+
+  return true;
+}
+
+function renderQuestions() {
+  const container = document.getElementById('questionButtons');
+  container.innerHTML = questions.map((q, idx) =>
+    `<button class="q-btn" onclick="selectQuestion(${idx})">Q${String(idx + 1).padStart(2, '0')} ${q.q.substring(0, 35)}...</button>`
+  ).join('');
+}
+
+function selectQuestion(idx) {
+  selectedQ = idx;
+  document.querySelectorAll('.q-btn').forEach((btn, i) => {
+    btn.classList.toggle('selected', i === idx);
+  });
+  const q = questions[idx];
+  document.getElementById('questionDisplay').style.display = 'block';
+  document.getElementById('questionText').textContent = q.q;
+  document.getElementById('intentText').textContent = q.intent;
+  document.getElementById('keywordArea').innerHTML = q.keywords.map(k => `<span class="keyword">${k}</span>`).join('');
+  document.getElementById('evalResultSection').style.display = 'none';
+  document.getElementById('intentSection').style.display = 'block';
+  hideStatus();
+}
+
+function toggleVoiceInput() {
+  if (!recognition) {
+    if (!initVoice()) return;
+  }
+  recognition.start();
+}
+
+function clearTranscript() {
+  transcript = '';
+  const box = document.getElementById('transcriptBox');
+  box.textContent = '音声を記録してください';
+  box.classList.add('empty');
+  box.classList.remove('filled');
+  document.getElementById('evalResultSection').style.display = 'none';
+  hideStatus();
+  if (recognition) recognition.stop();
+}
+
+function showStatus(message, type) {
+  const statusDiv = document.getElementById('statusMessage');
+  statusDiv.className = `msg ${type}`;
+  statusDiv.textContent = message;
+  statusDiv.style.display = 'block';
+}
+
+function hideStatus() {
+  document.getElementById('statusMessage').style.display = 'none';
+}
+
+function getDetailedEvaluation() {
+  if (selectedQ === null || !transcript.trim()) {
+    showStatus('質問を選択して、音声入力を記録してください。', 'warning');
+    return;
+  }
+
+  const q = questions[selectedQ];
+  const evalBtn = document.getElementById('evalBtn');
+  const loadingSection = document.getElementById('loadingSection');
+
+  evalBtn.disabled = true;
+  evalBtn.classList.add('loading');
+  loadingSection.style.display = 'block';
+  hideStatus();
+
+  setTimeout(() => {
+    try {
+      const keywords = q.keywords || [];
+      const modelAnswer = q.model || '';
+
+      // 【項目別採点】
+      const scores = {};
+
+      // 1. 回答の使い方
+      const sentences = transcript.split(/[。、！？]/g).filter(s => s.trim().length > 0);
+      scores.usage = Math.min(20, Math.max(0, sentences.length * 5 + (transcript.length > 100 ? 5 : 0)));
+
+      // 2. 真点（内容：重要）
+      let keywordMatch = 0;
+      keywords.forEach(k => {
+        if (transcript.includes(k)) keywordMatch++;
+      });
+      const keywordRatio = keywordMatch / Math.max(keywords.length, 1);
+      scores.content = Math.round(30 * keywordRatio);
+
+      // 3. 具体性：ポイント
+      let concrete = 0;
+      if (transcript.match(/\d+/)) concrete += 5;
+      if (transcript.match(/[例えば|具体的|実際]/)) concrete += 8;
+      if (transcript.match(/[ため|理由|原因]/)) concrete += 5;
+      if (sentences.length >= 3) concrete += 7;
+      if (transcript.length >= 100) concrete += 5;
+      scores.specific = Math.min(30, concrete);
+
+      // 4. 話し方：よくみわけている
+      let expression = 0;
+      if (transcript.match(/[考えます|思います|と判断します]/)) expression += 7;
+      if (transcript.match(/[まず|その上で|そのため]/)) expression += 7;
+      if (transcript.match(/[だからこそ|つまり|すなわち]/)) expression += 6;
+      if (transcript.length > 80) expression += 5;
+      if (transcript.match(/。.*。.*。/)) expression += 5;
+      scores.expression = Math.min(20, expression);
+
+      // 5. 読む組み立て
+      let structure = 0;
+      if (sentences.length >= 3) structure += 8;
+      if (transcript.match(/[また|一方|しかし|その反面]/)) structure += 7;
+      if (transcript.match(/[まず|次に|最後に]/)) structure += 7;
+      if (transcript.length > 100) structure += 3;
+      scores.structure = Math.min(15, structure);
+
+      // 総合スコア
+      const totalScore = Math.round(
+        (scores.usage / 20) * 20 +
+        (scores.content / 30) * 30 +
+        (scores.specific / 30) * 15 +
+        (scores.expression / 20) * 10 +
+        (scores.structure / 15) * 10
+      );
+
+      // フィードバック
+      let good = [];
+      let improve = [];
+
+      if (scores.usage >= 15) good.push('時間を十分に使った、構造的な回答です');
+      if (scores.content >= 20) good.push('重要なキーワードをよく含めています');
+      if (scores.specific >= 20) good.push('具体的な例や理由を含めた回答です');
+      if (scores.expression >= 12) good.push('適切な表現で、分かりやすく話せています');
+      if (scores.structure >= 10) good.push('複数の文に分けて、論理的に説明できています');
+
+      if (scores.usage < 12) improve.push('もっと詳しく説明してください。複数の文に分けることを意識しましょう');
+      if (scores.content < 20) improve.push('重要なキーワードをもっと含めてください。模範回答を何度も読みましょう');
+      if (scores.specific < 15) improve.push('具体的な例や数字を加えると、説得力が増します');
+      if (scores.expression < 10) improve.push('「考えます」「そのため」など、適切な表現を使いましょう');
+      if (scores.structure < 8) improve.push('複数の文に分けて、より体系的に説明することを意識してください');
+
+      displayDetailedEvaluation({
+        scores: scores,
+        totalScore: totalScore,
+        good: good,
+        improve: improve
+      }, q.model);
+
+      showStatus('✓ 詳細採点が完了しました', 'success');
+
+    } catch (error) {
+      console.error('エラー:', error.message);
+      showStatus('採点エラー: ' + error.message, 'error');
+    } finally {
+      evalBtn.disabled = false;
+      evalBtn.classList.remove('loading');
+      loadingSection.style.display = 'none';
+    }
+  }, 2000);
+}
+
+function displayDetailedEvaluation(result, modelAnswer) {
+  const totalScoreDiv = document.getElementById('totalScore');
+  const detailedScoresDiv = document.getElementById('detailedScores');
+  const feedbackSectionDiv = document.getElementById('feedbackSection');
+
+  totalScoreDiv.textContent = result.totalScore;
+
+  // 項目別スコア
+  let itemsHtml = '<div class="items-section">';
+  itemsHtml += '<div class="items-title">📊 項目別の点数</div>';
+
+  itemsHtml += '<div class="item-row">';
+  itemsHtml += '<div><div class="item-name">時間の使い方</div><div class="item-detail">時間を十分に使って、複数に分けて話せているか</div></div>';
+  itemsHtml += `<div class="item-score"><div class="score-number">${result.scores.usage}</div><div class="score-max">/ 20</div></div>`;
+  itemsHtml += '</div>';
+
+  itemsHtml += '<div class="item-row">';
+  itemsHtml += '<div><div class="item-name">真点（内容）</div><div class="item-detail">質問の要点をおさえた、重要なポイントが入っているか</div></div>';
+  itemsHtml += `<div class="item-score"><div class="score-number">${result.scores.content}</div><div class="score-max">/ 30</div></div>`;
+  itemsHtml += '</div>';
+
+  itemsHtml += '<div class="item-row">';
+  itemsHtml += '<div><div class="item-name">具体性：ポイント</div><div class="item-detail">具体的な例や理由（数字・場所）が入っているか</div></div>';
+  itemsHtml += `<div class="item-score"><div class="score-number">${result.scores.specific}</div><div class="score-max">/ 30</div></div>`;
+  itemsHtml += '</div>';
+
+  itemsHtml += '<div class="item-row">';
+  itemsHtml += '<div><div class="item-name">話し方：よくみわけている</div><div class="item-detail">「考えます」「そのため」など適切な表現を使えているか</div></div>';
+  itemsHtml += `<div class="item-score"><div class="score-number">${result.scores.expression}</div><div class="score-max">/ 20</div></div>`;
+  itemsHtml += '</div>';
+
+  itemsHtml += '<div class="item-row">';
+  itemsHtml += '<div><div class="item-name">読む組み立て</div><div class="item-detail">最初の1文で結論を述べ、最後に一つにまとめられているか</div></div>';
+  itemsHtml += `<div class="item-score"><div class="score-number">${result.scores.structure}</div><div class="score-max">/ 15</div></div>`;
+  itemsHtml += '</div>';
+
+  itemsHtml += '</div>';
+
+  detailedScoresDiv.innerHTML = itemsHtml;
+
+  // フィードバック
+  let feedbackHtml = '<div class="feedback-section">';
+  feedbackHtml += '<div class="feedback-title">✓ 良かった点</div>';
+  result.good.forEach(item => {
+    feedbackHtml += `<div class="feedback-box feedback-good"><div class="feedback-label good">✓</div><div class="feedback-content">${item}</div></div>`;
+  });
+
+  feedbackHtml += '<div class="feedback-title" style="margin-top: 20px;">△ 改善すべき点</div>';
+  result.improve.forEach(item => {
+    feedbackHtml += `<div class="feedback-box feedback-improve"><div class="feedback-label improve">△</div><div class="feedback-content">${item}</div></div>`;
+  });
+
+  feedbackHtml += '<div class="model-answer">';
+  feedbackHtml += '<div class="model-title">📝 模範回答例</div>';
+  feedbackHtml += `<div class="model-content">${modelAnswer}</div>`;
+  feedbackHtml += '</div>';
+
+  feedbackHtml += '</div>';
+
+  feedbackSectionDiv.innerHTML = feedbackHtml;
+
+  document.getElementById('evalResultSection').style.display = 'block';
+  window.scrollTo(0, document.getElementById('evalResultSection').offsetTop);
+}
+
+window.addEventListener('load', () => {
+  initVoice();
+  renderQuestions();
+});
+</script>
+</body>
+</html>
