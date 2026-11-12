@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>大津町役場 3次面接対策 - 39問完全版</title>
+<title>大津町役場 3次面接対策 - 39問AI評価版</title>
 <style>
   * { box-sizing: border-box; }
   body {
@@ -103,7 +103,6 @@
     background: #0066cc;
     color: white;
     margin-top: 20px;
-    width: 100%;
   }
   .btn-save:hover { background: #0052a3; }
 
@@ -116,6 +115,8 @@
     min-height: 80px;
     max-height: 150px;
     overflow-y: auto;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
     font-size: 15px;
     line-height: 1.5;
   }
@@ -185,6 +186,19 @@
   .eval-content div {
     margin: 4px 0;
   }
+  .loading-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #0066cc;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    margin-right: 8px;
+  }
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
 
   .msg {
     margin-top: 10px;
@@ -192,20 +206,25 @@
     border-radius: 3px;
     border-left: 4px solid #999;
   }
+  .msg.info {
+    background: #e7f1ff;
+    color: #1c7ed6;
+    border-left-color: #1c7ed6;
+  }
   .msg.success {
     background: #c3fac3;
     color: #2b8a3e;
     border-left-color: #2b8a3e;
   }
-  .msg.warning {
-    background: #fff3bf;
-    color: #d9480f;
-    border-left-color: #d9480f;
-  }
   .msg.error {
     background: #fcc;
     color: #d92d20;
     border-left-color: #d92d20;
+  }
+  .msg.warning {
+    background: #fff3bf;
+    color: #d9480f;
+    border-left-color: #d9480f;
   }
 
   .records-section {
@@ -237,7 +256,7 @@
 <body>
 <div class="container">
   <h1>🏛️ 大津町役場 3次面接対策</h1>
-  <p class="subtitle">音声入力→採点版（全39問）</p>
+  <p class="subtitle">AI評価版（全39問）</p>
 
   <div class="question-list">
     <h3>質問を選択:</h3>
@@ -252,7 +271,7 @@
     <div class="control-buttons">
       <button class="btn-voice" id="voiceBtn" onclick="toggleVoiceInput()">🎤 音声入力開始</button>
       <button class="btn-clear" onclick="clearTranscript()">🗑️ クリア</button>
-      <button class="btn-eval" id="evalBtn" onclick="getAutoEvaluation()">⚡ 採点</button>
+      <button class="btn-eval" id="evalBtn" onclick="getAutoEvaluation()">⚡ AI評価</button>
     </div>
 
     <div>
@@ -278,6 +297,12 @@
       <div class="records-section">
         <div class="records-title">📋 保存した記録（最大5件）</div>
         <div id="recordsList"></div>
+      </div>
+    </div>
+
+    <div id="loadingSection" style="display:none;">
+      <div class="msg info">
+        <span class="loading-spinner"></span>AI評価を生成中（タイムアウト：30秒）...
       </div>
     </div>
 
@@ -326,6 +351,8 @@ let selectedQ = null;
 let transcript = '';
 let recognition = null;
 let records = [];
+const WORKERS_URL = 'https://gamba-api.kogentext.workers.dev';
+const TIMEOUT_MS = 30000;
 
 function loadRecords() {
   try {
@@ -432,92 +459,106 @@ function hideStatus() {
   document.getElementById('statusMessage').style.display = 'none';
 }
 
-function getAutoEvaluation() {
+async function getAutoEvaluation() {
   if (selectedQ === null || !transcript.trim()) {
     showStatus('質問を選択して、音声入力を記録してください。', 'warning');
     return;
   }
 
+  const savedTranscript = transcript;
+  const savedTranscriptBox = document.getElementById('transcriptBox');
+  const savedTranscriptText = savedTranscriptBox.textContent;
+
   const q = questions[selectedQ];
   const evalBtn = document.getElementById('evalBtn');
+  const loadingSection = document.getElementById('loadingSection');
 
   evalBtn.disabled = true;
   evalBtn.classList.add('loading');
+  loadingSection.style.display = 'block';
   hideStatus();
 
-  setTimeout(() => {
-    try {
-      const keywords = q.keywords || [];
-      let score = 50;
-      let good = [];
-      let improve = [];
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, TIMEOUT_MS);
 
-      // キーワードマッチ
-      let keywordCount = 0;
-      keywords.forEach(k => {
-        if (transcript.includes(k)) keywordCount++;
-      });
-      const keywordBonus = Math.round(20 * (keywordCount / Math.max(keywords.length, 1)));
-      score += keywordBonus;
+    const response = await fetch(WORKERS_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        question: q.q,
+        transcript: savedTranscript
+      }),
+      signal: controller.signal
+    });
 
-      // 長さボーナス
-      if (transcript.length > 80) score += 10;
-      if (transcript.length > 150) score += 5;
-      if (transcript.length > 200) score += 5;
+    clearTimeout(timeoutId);
 
-      // 複数文チェック
-      const sentences = transcript.split(/[。、！？]/g).filter(s => s.trim().length > 0);
-      if (sentences.length >= 2) score += 5;
-      if (sentences.length >= 3) score += 5;
-
-      score = Math.min(score, 100);
-
-      // フィードバック
-      if (transcript.length > 100) good.push('十分な長さで説明できています');
-      if (keywordCount >= Math.ceil(keywords.length * 0.5)) good.push('重要なキーワードが含まれています');
-      if (sentences.length >= 2) good.push('複数の文で説明できています');
-      if (good.length === 0) good.push('もう少し詳しく説明してみましょう');
-
-      if (keywordCount < keywords.length) improve.push('重要なキーワードをもっと含めてください。模範回答を参考に。');
-      if (transcript.length < 80) improve.push('もっと詳しく説明することを心がけましょう。');
-      if (sentences.length < 2) improve.push('複数の文に分けて説明することを意識してください。');
-
-      displayEvaluation({score: score, good: good, improve: improve}, q.model);
-      showStatus('✓ 採点が完了しました', 'success');
-
-    } catch (error) {
-      showStatus('採点エラー: ' + error.message, 'error');
-    } finally {
-      evalBtn.disabled = false;
-      evalBtn.classList.remove('loading');
+    if (!response.ok) {
+      throw new Error(`API エラー (${response.status})`);
     }
-  }, 1500);
+
+    const result = await response.json();
+    displayEvaluation(result, q.model);
+    showStatus('✓ AI評価が完了しました', 'success');
+
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      showStatus('タイムアウト（30秒以内に応答がありません）。ネットワーク接続を確認してください。', 'error');
+    } else {
+      showStatus('AI評価エラー: ' + error.message, 'error');
+    }
+
+  } finally {
+    transcript = savedTranscript;
+    savedTranscriptBox.textContent = savedTranscriptText;
+    if (savedTranscript.trim()) {
+      savedTranscriptBox.classList.add('filled');
+      savedTranscriptBox.classList.remove('empty');
+    }
+
+    evalBtn.disabled = false;
+    evalBtn.classList.remove('loading');
+    loadingSection.style.display = 'none';
+  }
 }
 
 function displayEvaluation(result, modelAnswer) {
   const scoreDisplay = document.getElementById('scoreDisplay');
   const evalDetails = document.getElementById('evalDetails');
 
-  scoreDisplay.textContent = `${result.score}点`;
+  scoreDisplay.textContent = result.score ? `${result.score}点` : '評価中...';
 
   let html = '';
-  if (result.good && result.good.length > 0) {
+  if (result.good) {
     html += '<div class="eval-item">';
     html += '<div class="eval-label">✓ 良かった点</div>';
     html += '<div class="eval-content">';
-    result.good.forEach(item => {
-      html += `<div>・${item}</div>`;
-    });
+    if (Array.isArray(result.good)) {
+      result.good.forEach(item => {
+        html += `<div>・${item}</div>`;
+      });
+    } else {
+      html += `<div>${result.good}</div>`;
+    }
     html += '</div></div>';
   }
 
-  if (result.improve && result.improve.length > 0) {
+  if (result.improve) {
     html += '<div class="eval-item">';
     html += '<div class="eval-label">△ 改善すべき点</div>';
     html += '<div class="eval-content">';
-    result.improve.forEach(item => {
-      html += `<div>・${item}</div>`;
-    });
+    if (Array.isArray(result.improve)) {
+      result.improve.forEach(item => {
+        html += `<div>・${item}</div>`;
+      });
+    } else {
+      html += `<div>${result.improve}</div>`;
+    }
     html += '</div></div>';
   }
 
@@ -525,9 +566,11 @@ function displayEvaluation(result, modelAnswer) {
   html += '<div class="eval-label">📝 模範回答例</div>';
   html += `<div class="eval-content">${modelAnswer}</div></div>`;
 
-  html += '<div class="eval-item">';
-  html += '<div class="eval-label">💡 改善アドバイス</div>';
-  html += '<div class="eval-content">模範回答を何度も読み、重要なキーワード や表現パターンを自分の言葉で練習してください。また、複数の文に分けて説明する習慣をつけましょう。</div></div>';
+  if (result.advice) {
+    html += '<div class="eval-item">';
+    html += '<div class="eval-label">💡 改善アドバイス</div>';
+    html += `<div class="eval-content">${result.advice}</div></div>`;
+  }
 
   evalDetails.innerHTML = html;
   document.getElementById('evalResultSection').style.display = 'block';
