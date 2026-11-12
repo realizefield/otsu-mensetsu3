@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>大津町 3次面接練習</title>
+<style>
+body { margin: 0; padding: 20px; background: #f5f5f5; font-family: "Hiragino Sans", "Meiryo", sans-serif; line-height: 1.6; color: #333; }
+.container { max-width: 900px; margin: 0 auto; }
+h1 { color: #0066cc; text-align: center; margin: 0 0 5px; }
+.subtitle { text-align: center; color: #666; margin-bottom: 20px; font-size: 14px; }
+.q-btn { display: block; width: 100%; text-align: left; padding: 10px; margin: 5px 0; border: 1px solid #ddd; background: white; cursor: pointer; font-size: 13px; transition: 0.2s; }
+.q-btn:hover { background: #f0f0f0; border-color: #0066cc; }
+.q-btn.selected { background: #e6f2ff; border-color: #0066cc; font-weight: bold; }
+.practice-area { background: white; padding: 20px; border-radius: 5px; margin-top: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+.question-display { background: #f9f9f9; padding: 15px; border-left: 5px solid #0066cc; margin-bottom: 15px; font-weight: bold; }
+.control-buttons { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+button { padding: 10px 15px; border: none; cursor: pointer; font-weight: bold; border-radius: 3px; transition: 0.2s; }
+.btn-voice { background: #2b8a3e; color: white; }
+.btn-voice:hover:not(.loading) { background: #1e6b2e; }
+.btn-voice.recording { background: #d92d20; animation: pulse 1s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+.btn-clear { background: #ccc; color: #333; }
+.btn-clear:hover { background: #999; }
+.btn-eval { background: #0066cc; color: white; }
+.btn-eval:hover:not(.loading) { background: #0052a3; }
+.btn-eval.loading { opacity: 0.6; cursor: not-allowed; }
+.transcript-box { background: #f9f9f9; border: 2px solid #ddd; padding: 12px; border-radius: 3px; margin-bottom: 10px; min-height: 60px; max-height: 100px; overflow-y: auto; word-wrap: break-word; font-size: 13px; }
+.transcript-box.empty { color: #999; font-style: italic; }
+.transcript-box.filled { color: #333; background: #f0f8ff; border-color: #0066cc; }
+.intent-section { background: #fff3bf; padding: 10px; border-radius: 3px; margin: 10px 0; font-size: 12px; }
+.intent-text { color: #d9480f; font-weight: bold; margin: 5px 0; }
+.keywords { margin-top: 8px; }
+.keyword { display: inline-block; background: #e6f2ff; color: #0066cc; padding: 3px 8px; margin: 3px 3px 3px 0; border-radius: 10px; font-size: 11px; }
+.evaluation-result { background: #f0f8ff; border: 2px solid #0066cc; padding: 15px; border-radius: 3px; margin-top: 15px; }
+.score-display { font-size: 36px; font-weight: bold; color: #0066cc; text-align: center; margin-bottom: 15px; }
+.eval-item { margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #ddd; }
+.eval-item:last-child { border-bottom: none; }
+.eval-label { font-weight: bold; color: #0066cc; margin-bottom: 5px; font-size: 13px; }
+.eval-content { color: #333; font-size: 12px; line-height: 1.5; }
+.eval-content div { margin: 3px 0; }
+.loading-spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid #0066cc; border-top-color: transparent; border-radius: 50%; animation: spin 0.6s linear infinite; margin-right: 6px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.msg { margin-top: 10px; padding: 10px; border-radius: 3px; border-left: 4px solid #999; font-size: 12px; }
+.msg.info { background: #e7f1ff; color: #1c7ed6; border-left-color: #1c7ed6; }
+.msg.success { background: #c3fac3; color: #2b8a3e; border-left-color: #2b8a3e; }
+.msg.error { background: #fcc; color: #d92d20; border-left-color: #d92d20; }
+.msg.warning { background: #fff3bf; color: #d9480f; border-left-color: #d9480f; }
+.records-section { margin-top: 15px; padding-top: 15px; border-top: 2px solid #ddd; }
+.records-title { font-weight: bold; color: #0066cc; margin-bottom: 10px; font-size: 13px; }
+.record-item { background: #f9f9f9; padding: 10px; border-left: 4px solid #0066cc; margin-bottom: 8px; border-radius: 2px; font-size: 12px; }
+.record-header { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 5px; }
+.record-score { color: #0066cc; }
+.record-detail { color: #666; font-size: 11px; }
+.btn-save { background: #0066cc; color: white; margin-top: 15px; }
+.btn-save:hover { background: #0052a3; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🏛️ 大津町役場 3次面接練習</h1>
+  <p class="subtitle">音声入力→文字化→AI評価版（39問）</p>
+
+  <div class="practice-area">
+    <h3>質問を選択:</h3>
+    <div id="questionButtons" style="max-height: 300px; overflow-y: auto;"></div>
+
+    <div id="questionDisplay" class="question-display" style="display:none;">
+      <div id="questionText"></div>
+    </div>
+
+    <div class="control-buttons">
+      <button class="btn-voice" id="voiceBtn" onclick="toggleVoiceInput()">🎤 音声入力開始</button>
+      <button class="btn-clear" onclick="clearTranscript()">🗑️ クリア</button>
+      <button class="btn-eval" id="evalBtn" onclick="getAutoEvaluation()">⚡ AI評価</button>
+    </div>
+
+    <label><strong>🎙️ 認識されたテキスト:</strong></label>
+    <div id="transcriptBox" class="transcript-box empty">クリックして音声入力を開始...</div>
+
+    <div id="intentSection" style="display:none;">
+      <div class="intent-section">
+        <div style="font-size: 11px; color: #999;">面接官の意図</div>
+        <div class="intent-text" id="intentText"></div>
+        <div class="keywords" id="keywordArea"></div>
+      </div>
+    </div>
+
+    <div id="evalResultSection" style="display:none;">
+      <div class="evaluation-result">
+        <div class="score-display" id="scoreDisplay"></div>
+        <div id="evalDetails"></div>
+        <button class="btn-save" onclick="saveRecord()">💾 この結果を保存する</button>
+      </div>
+
+      <div class="records-section">
+        <div class="records-title">📋 保存した記録（最大5件）</div>
+        <div id="recordsList"></div>
+      </div>
+    </div>
+
+    <div id="loadingSection" style="display:none;">
+      <div class="msg info">
+        <span class="loading-spinner"></span>AI評価を生成中（10～20秒ほどかかります）
+      </div>
+    </div>
+
+    <div id="statusMessage" style="display:none;"></div>
+
+    <p style="font-size: 11px; color: #999; margin-top: 15px;">※「AI評価」を押すと、話した内容の文字がAI採点のために送信されます。氏名などの個人情報は話さないでください。</p>
+  </div>
+</div>
+
+<script src="questions.js"></script>
+<script src="config.js"></script>
+<script>
+let selectedQ = null;
+let transcript = '';
+let recognition = null;
+let records = [];
+const WORKERS_URL = 'https://gamba-api.kogentext.workers.dev';
+const TIMEOUT_MS = 30000;
+
+function loadRecords() {
+  try {
+    const saved = localStorage.getItem('otsu3-records');
+    records = saved ? JSON.parse(saved) : [];
+  } catch (e) {
+    records = [];
+  }
+}
+
+function saveRecords() {
+  try {
+    localStorage.setItem('otsu3-records', JSON.stringify(records.slice(0, 5)));
+  } catch (e) {}
+}
+
+function initVoice() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) {
+    showStatus('お使いのブラウザは音声認識に対応していません。Chrome、Edge、Safariをお試しください。', 'error');
+    return false;
+  }
+  recognition = new SR();
+  recognition.lang = 'ja-JP';
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  recognition.onstart = () => {
+    document.getElementById('voiceBtn').classList.add('recording');
+    document.getElementById('voiceBtn').textContent = '🔴 記録中...';
+  };
+  recognition.onresult = (event) => {
+    transcript = '';
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      transcript += event.results[i][0].transcript;
+    }
+    const box = document.getElementById('transcriptBox');
+    box.textContent = transcript;
+    box.classList.remove('empty');
+    box.classList.add('filled');
+  };
+  recognition.onerror = (event) => {
+    showStatus('音声認識エラー: ' + event.error, 'error');
+  };
+  recognition.onend = () => {
+    document.getElementById('voiceBtn').classList.remove('recording');
+    document.getElementById('voiceBtn').textContent = '🎤 音声入力開始';
+  };
+  return true;
+}
+
+function renderQuestions() {
+  const c = document.getElementById('questionButtons');
+  if (!window.QUESTION_SETS || !window.QUESTION_SETS[0]) return;
+  const qs = window.QUESTION_SETS[0].questions;
+  c.innerHTML = qs.map((q, idx) => `<button class="q-btn" onclick="selectQuestion(${idx})">Q${String(idx+1).padStart(2,'0')} ${q.q.substring(0,20)}...</button>`).join('');
+}
+
+function selectQuestion(idx) {
+  selectedQ = idx;
+  if (!window.QUESTION_SETS || !window.QUESTION_SETS[0]) return;
+  const qs = window.QUESTION_SETS[0].questions;
+  const q = qs[idx];
+  document.querySelectorAll('.q-btn').forEach((btn, i) => {
+    btn.classList.toggle('selected', i === idx);
+  });
+  document.getElementById('questionDisplay').style.display = 'block';
+  document.getElementById('questionText').textContent = q.q;
+  document.getElementById('intentText').textContent = q.intent || '';
+  document.getElementById('keywordArea').innerHTML = (q.keywords || []).map(k => `<span class="keyword">${k}</span>`).join('');
+  document.getElementById('intentSection').style.display = 'block';
+  document.getElementById('evalResultSection').style.display = 'none';
+  hideStatus();
+}
+
+function toggleVoiceInput() {
+  if (!recognition) {
+    if (!initVoice()) return;
+  }
+  recognition.start();
+}
+
+function clearTranscript() {
+  transcript = '';
+  const box = document.getElementById('transcriptBox');
+  box.textContent = '音声を記録してください';
+  box.classList.add('empty');
+  box.classList.remove('filled');
+  document.getElementById('evalResultSection').style.display = 'none';
+  hideStatus();
+  if (recognition) recognition.stop();
+}
+
+function showStatus(message, type) {
+  const statusDiv = document.getElementById('statusMessage');
+  statusDiv.className = `msg ${type}`;
+  statusDiv.textContent = message;
+  statusDiv.style.display = 'block';
+}
+
+function hideStatus() {
+  document.getElementById('statusMessage').style.display = 'none';
+}
+
+async function getAutoEvaluation() {
+  if (selectedQ === null || !transcript.trim()) {
+    showStatus('質問を選択して、音声入力を記録してください。', 'warning');
+    return;
+  }
+
+  if (!window.QUESTION_SETS || !window.QUESTION_SETS[0]) return;
+  const qs = window.QUESTION_SETS[0].questions;
+  const q = qs[selectedQ];
+
+  const savedTranscript = transcript;
+  const savedTranscriptBox = document.getElementById('transcriptBox');
+  const savedTranscriptText = savedTranscriptBox.textContent;
+
+  const evalBtn = document.getElementById('evalBtn');
+  const loadingSection = document.getElementById('loadingSection');
+
+  evalBtn.disabled = true;
+  evalBtn.classList.add('loading');
+  loadingSection.style.display = 'block';
+  hideStatus();
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => { controller.abort(); }, TIMEOUT_MS);
+
+    const response = await fetch(WORKERS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question: q.q, transcript: savedTranscript }),
+      signal: controller.signal
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      throw new Error(`API エラー (${response.status})`);
+    }
+
+    const result = await response.json();
+    displayEvaluation(result, q.model);
+    showStatus('✓ AI評価が完了しました', 'success');
+
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      showStatus('タイムアウト（30秒以内に応答がありません）。ネットワーク接続を確認してください。', 'error');
+    } else {
+      showStatus('AI評価エラー: ' + error.message, 'error');
+    }
+  } finally {
+    transcript = savedTranscript;
+    savedTranscriptBox.textContent = savedTranscriptText;
+    if (savedTranscript.trim()) {
+      savedTranscriptBox.classList.add('filled');
+      savedTranscriptBox.classList.remove('empty');
+    }
+
+    evalBtn.disabled = false;
+    evalBtn.classList.remove('loading');
+    loadingSection.style.display = 'none';
+  }
+}
+
+function displayEvaluation(result, modelAnswer) {
+  const scoreDisplay = document.getElementById('scoreDisplay');
+  const evalDetails = document.getElementById('evalDetails');
+
+  scoreDisplay.textContent = result.score ? `${result.score}点（AI採点）` : '評価中...';
+
+  let html = '';
+  if (result.good) {
+    html += '<div class="eval-item"><div class="eval-label">✓ 良かった点</div><div class="eval-content">';
+    if (Array.isArray(result.good)) {
+      result.good.forEach(item => {
+        html += `<div>・${item}</div>`;
+      });
+    } else {
+      html += `<div>${result.good}</div>`;
+    }
+    html += '</div></div>';
+  }
+
+  if (result.improve) {
+    html += '<div class="eval-item"><div class="eval-label">△ 改善すべき点</div><div class="eval-content">';
+    if (Array.isArray(result.improve)) {
+      result.improve.forEach(item => {
+        html += `<div>・${item}</div>`;
+      });
+    } else {
+      html += `<div>${result.improve}</div>`;
+    }
+    html += '</div></div>';
+  }
+
+  html += '<div class="eval-item"><div class="eval-label">📝 模範回答例</div><div class="eval-content">' + (modelAnswer || '') + '</div></div>';
+
+  if (result.advice) {
+    html += '<div class="eval-item"><div class="eval-label">💡 改善アドバイス</div><div class="eval-content">' + result.advice + '</div></div>';
+  }
+
+  evalDetails.innerHTML = html;
+  document.getElementById('evalResultSection').style.display = 'block';
+
+  window.lastEvalResult = { score: result.score, questionIdx: selectedQ };
+  displayRecords();
+  window.scrollTo(0, document.getElementById('evalResultSection').offsetTop);
+}
+
+function saveRecord() {
+  if (!window.lastEvalResult) return;
+  if (!window.QUESTION_SETS || !window.QUESTION_SETS[0]) return;
+
+  const result = window.lastEvalResult;
+  const qs = window.QUESTION_SETS[0].questions;
+  const q = qs[result.questionIdx];
+
+  const record = {
+    time: new Date().toLocaleString('ja-JP'),
+    question: q.q.substring(0, 28) + '...',
+    score: result.score
+  };
+
+  records.unshift(record);
+  records = records.slice(0, 5);
+  saveRecords();
+
+  displayRecords();
+  showStatus('✓ 結果を保存しました', 'success');
+}
+
+function displayRecords() {
+  const container = document.getElementById('recordsList');
+  if (records.length === 0) {
+    container.innerHTML = '<div style="color: #999; font-size: 11px;">まだ記録がありません</div>';
+    return;
+  }
+
+  container.innerHTML = records.map(r => `
+    <div class="record-item">
+      <div class="record-header">
+        <span>${r.time}</span>
+        <span class="record-score">${r.score}点</span>
+      </div>
+      <div class="record-detail">${r.question}</div>
+    </div>
+  `).join('');
+}
+
+window.addEventListener('load', () => {
+  loadRecords();
+  initVoice();
+  renderQuestions();
+  displayRecords();
+});
+</script>
+</body>
+</html>
